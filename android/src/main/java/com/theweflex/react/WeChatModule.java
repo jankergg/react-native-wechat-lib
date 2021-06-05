@@ -31,7 +31,6 @@ import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 import com.tencent.mm.opensdk.modelbase.BaseReq;
 import com.tencent.mm.opensdk.modelbase.BaseResp;
-import com.tencent.mm.opensdk.modelbiz.ChooseCardFromWXCardPackage;
 import com.tencent.mm.opensdk.modelmsg.SendAuth;
 import com.tencent.mm.opensdk.modelmsg.SendMessageToWX;
 import com.tencent.mm.opensdk.modelmsg.ShowMessageFromWX;
@@ -52,7 +51,6 @@ import com.tencent.mm.opensdk.openapi.WXAPIFactory;
 import com.tencent.mm.opensdk.constants.ConstantsAPI;
 import com.tencent.mm.opensdk.modelbiz.SubscribeMessage;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -60,10 +58,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -203,83 +198,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
     }
 
     /**
-     * 选择发票
-     *
-     * @param data
-     * @param callback
-     */
-    @ReactMethod
-    public void chooseInvoice(ReadableMap data, Callback callback) {
-        ChooseCardFromWXCardPackage.Req req = new ChooseCardFromWXCardPackage.Req();
-
-        req.appId = this.appId;
-        req.cardType = "INVOICE";
-        req.timeStamp = String.valueOf(data.getInt("timeStamp"));
-        req.nonceStr = data.getString("nonceStr");
-        req.cardSign = data.getString("cardSign");
-        req.signType = data.getString("signType");
-
-        callback.invoke(null, api.sendReq(req));
-    }
-
-    public byte[] loadRawDataFromURL(String u) throws Exception {
-        URL url = new URL(u);
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-
-        InputStream is = conn.getInputStream();
-        BufferedInputStream bis = new BufferedInputStream(is);
-
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-
-        final int BUFFER_SIZE = 2048;
-        final int EOF = -1;
-
-        int c;
-        byte[] buf = new byte[BUFFER_SIZE];
-
-        while (true) {
-            c = bis.read(buf);
-            if (c == EOF)
-                break;
-
-            baos.write(buf, 0, c);
-        }
-
-        conn.disconnect();
-        is.close();
-
-        byte[] data = baos.toByteArray();
-        baos.flush();
-
-        return data;
-    }
-
-
-    /**
      * 分享文本
-     *
-     * @param data
-     * @param callback
-     */
-    @ReactMethod
-    public void shareFile(ReadableMap data, Callback callback) throws Exception {
-        WXFileObject fileObj = new WXFileObject();
-        fileObj.fileData = loadRawDataFromURL(data.getString("url"));
-
-        WXMediaMessage msg = new WXMediaMessage();
-        msg.mediaObject = fileObj;
-        msg.title = data.getString("title");
-
-        SendMessageToWX.Req req = new SendMessageToWX.Req();
-        req.transaction = String.valueOf(System.currentTimeMillis());
-        req.message = msg;
-        req.scene = data.hasKey("scene") ? data.getInt("scene") : SendMessageToWX.Req.WXSceneSession;
-        callback.invoke(null, api.sendReq(req));
-    }
-
-    /**
-     * 分享文本
-     *
      * @param data
      * @param callback
      */
@@ -303,7 +222,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     /**
      * 分享图片
-     *
      * @param data
      * @param callback
      */
@@ -337,10 +255,8 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     }
     // private static final String SDCARD_ROOT = Environment.getExternalStorageDirectory().getAbsolutePath();
-
     /**
      * 分享本地图片
-     *
      * @param data
      * @param callback
      */
@@ -354,7 +270,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             }
 //            int maxWidth = data.hasKey("maxWidth") ? data.getInt("maxWidth") : -1;
             fs = new FileInputStream(path);
-            Bitmap bmp = BitmapFactory.decodeStream(fs);
+            Bitmap bmp  = BitmapFactory.decodeStream(fs);
 
 //            if (maxWidth > 0) {
 //                bmp = Bitmap.createScaledBitmap(bmp, maxWidth, bmp.getHeight() / bmp.getWidth() * maxWidth, true);
@@ -402,7 +318,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     /**
      * 分享音乐
-     *
      * @param data
      * @param callback
      */
@@ -426,9 +341,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
                 @Override
                 public void invoke(@Nullable Bitmap bmp) {
                     // 设置缩略图
-                    if (bmp != null) {
-                        msg.thumbData = bitmapResizeGetBytes(bmp, THUMB_SIZE);
-                    }
+                    msg.thumbData = bitmapResizeGetBytes(bmp, THUMB_SIZE);
                     // 构造一个Req
                     SendMessageToWX.Req req = new SendMessageToWX.Req();
                     req.transaction = "music";
@@ -450,7 +363,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     /**
      * 分享视频
-     *
      * @param data
      * @param callback
      */
@@ -470,9 +382,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
                 @Override
                 public void invoke(@Nullable Bitmap bmp) {
                     // 设置缩略图
-                    if (bmp != null) {
-                        msg.thumbData = bitmapResizeGetBytes(bmp, THUMB_SIZE);
-                    }
+                    msg.thumbData = bitmapResizeGetBytes(bmp, THUMB_SIZE);
                     // 构造一个Req
                     SendMessageToWX.Req req = new SendMessageToWX.Req();
                     req.transaction = "video";
@@ -493,7 +403,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     /**
      * 分享网页
-     *
      * @param data
      * @param callback
      */
@@ -513,9 +422,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
                 @Override
                 public void invoke(@Nullable Bitmap bmp) {
                     // 设置缩略图
-                    if (bmp != null) {
-                        msg.thumbData = bitmapResizeGetBytes(bmp, THUMB_SIZE);
-                    }
+                    msg.thumbData = bitmapResizeGetBytes(bmp, THUMB_SIZE);
                     // 构造一个Req
                     SendMessageToWX.Req req = new SendMessageToWX.Req();
                     req.transaction = "webpage";
@@ -536,7 +443,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     /**
      * 分享小程序
-     *
      * @param data
      * @param callback
      */
@@ -564,9 +470,7 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
                 @Override
                 public void invoke(@Nullable Bitmap bmp) {
                     // 小程序消息封面图片，小于128k
-                    if (bmp != null) {
-                        msg.thumbData = bitmapResizeGetBytes(bmp, 128);
-                    }
+                    msg.thumbData = bitmapResizeGetBytes(bmp, 128);
                     // 构造一个Req
                     SendMessageToWX.Req req = new SendMessageToWX.Req();
                     req.transaction = "miniProgram";
@@ -613,7 +517,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
 
     /**
      * 一次性订阅消息
-     *
      * @param data
      * @param callback
      */
@@ -984,10 +887,6 @@ public class WeChatModule extends ReactContextBaseJavaModule implements IWXAPIEv
             map.putString("type", "WXLaunchMiniProgramReq.Resp");
             map.putString("extraData", extraData);
             map.putString("extMsg", extraData);
-        } else if (baseResp instanceof ChooseCardFromWXCardPackage.Resp) {
-            ChooseCardFromWXCardPackage.Resp resp = (ChooseCardFromWXCardPackage.Resp) baseResp;
-            map.putString("type", "WXChooseInvoiceResp.Resp");
-            map.putString("cardItemList", resp.cardItemList);
         }
 
         this.getReactApplicationContext()
